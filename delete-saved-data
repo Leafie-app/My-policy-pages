@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Leafie - Data Deletion Instructions</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 2rem;
+      background-color: #f9fafb;
+      color: #1f2937;
+    }
+    h1 {
+      color: #0c7d69;
+      font-size: 2rem;
+      margin-bottom: 1rem;
+    }
+    p {
+      font-size: 1rem;
+      color: #4b5563;
+      margin-bottom: 1rem;
+      line-height: 1.5;
+    }
+    strong {
+      color: #111827;
+    }
+  </style>
+</head>
+<body>
+  <h1>How to Delete Your Data</h1>
+  <p>At Leafie, you have control over your personal data.</p>
+  <p><strong>To delete your saved plant data:</strong></p>
+  <p>Open the Leafie app, go to <em>Privacy Settings</em>, and press the <strong>“Clear Saved Plants”</strong> button.</p>
+  <p>This action will remove your saved plants and related data from your account.</p>
+  <p>If you need further assistance or want to request deletion of other types of data, please contact us at:</p>
+  <p><strong>Email:</strong> Leafie.helpdesk@outlook.com</p>
+</body>
+</html>
