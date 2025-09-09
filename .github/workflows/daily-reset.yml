@@ -1,0 +1,17 @@
+name: Daily Plant ID Reset
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * *'
+
+jobs:
+  reset:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call Daily Reset Function
+        run: |
+          curl -X POST https://ztpuninaxtazpanepmpj.supabase.co/functions/v1/Daily-identification-reset \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d "{}"
