@@ -2,8 +2,8 @@ name: Daily Plant ID Reset
 
   on:
     schedule:
-      - cron: '0 0 * * *'  # Daily at midnight UTC
-    workflow_dispatch:  # Allow manual trigger for testing
+      - cron: "0 0 * * *"
+    workflow_dispatch:
 
   jobs:
     reset-identifications:
@@ -12,23 +12,10 @@ name: Daily Plant ID Reset
       steps:
         - name: Call Daily Reset Function
           run: |
-            response=$(curl -s -w "%{http_code}" -L -X POST \
+            curl -L -X POST \
               'https://ztpuninaxtazpanepmpj.supabase.co/functions/v1/Daily-identi    
   fication-reset' \
               -H 'Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}'    
    \
               -H 'Content-Type: application/json' \
-              -d '{}')
-
-            http_code="${response: -3}"
-            body="${response%???}"
-
-            echo "HTTP Status: $http_code"
-            echo "Response: $body"
-
-            if [ "$http_code" -ge 200 ] && [ "$http_code" -lt 300 ]; then
-              echo "✅ Daily reset completed successfully"
-            else
-              echo "❌ Daily reset failed"
-              exit 1
-            fi
+              -d '{}'
