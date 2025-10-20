@@ -1,0 +1,17 @@
+name: Daily Calendar Cleanup
+
+on:
+  workflow_dispatch: # Allow manual trigger
+  schedule:
+    - cron: '0 2 * * *' # Run daily at 2 AM UTC (adjust timezone as needed)
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call Calendar Cleanup Function
+        run: |
+          curl -X POST https://ztpuninaxtazpanepmpj.supabase.co/functions/v1/cleanup-old-completed-events \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d "{}"
