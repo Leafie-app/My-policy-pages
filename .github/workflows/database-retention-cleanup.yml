@@ -1,0 +1,156 @@
+name: Database Retention Cleanup
+
+# Purpose: Automated cleanup of old records to prevent database bloat
+# Runs multiple cleanup functions on different schedules based on data growth patterns
+
+on:
+  workflow_dispatch: # Allow manual trigger for testing
+  schedule:
+    # Health History Cleanup: Daily at 3 AM UTC
+    # Rationale: High-frequency data (100+ rows/plant/year), needs daily cleanup
+    - cron: '0 3 * * *'
+
+jobs:
+  # =====================================================
+  # HEALTH HISTORY CLEANUP (Daily)
+  # =====================================================
+  cleanup-health-history:
+    runs-on: ubuntu-latest
+    name: Cleanup Plant Health History (90-day retention)
+    steps:
+      - name: Call Health History Cleanup Function
+        run: |
+          RESPONSE=$(curl -X POST "${{ secrets.SUPABASE_URL }}/rest/v1/rpc/cleanup_old_health_history" \
+            -H "apikey: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
+            -H "Content-Type: application/json" \
+            -H "Prefer: return=representation" \
+            -d "{}" \
+            -w "\n%{http_code}")
+
+          HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+          BODY=$(echo "$RESPONSE" | head -n-1)
+
+          if [ "$HTTP_CODE" -eq 200 ]; then
+            echo "✅ Health history cleanup successful"
+            echo "Response: $BODY"
+          else
+            echo "❌ Health history cleanup failed with HTTP $HTTP_CODE"
+            echo "Response: $BODY"
+            exit 1
+          fi
+
+      - name: Get Health History Stats
+        if: success()
+        run: |
+          curl -X POST "${{ secrets.SUPABASE_URL }}/rest/v1/rpc/get_health_history_stats" \
+            -H "apikey: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
+            -H "Prefer: return=representation" \
+            | jq '.'
+
+  # =====================================================
+  # QUIZ DATA CLEANUP (Weekly on Sundays)
+  # =====================================================
+  cleanup-quiz-data:
+    runs-on: ubuntu-latest
+    name: Cleanup Quiz Data (1-year retention)
+    # Only run on Sundays (day 0)
+    if: github.event.schedule == '0 4 * * 0' || github.event_name == 'workflow_dispatch'
+    steps:
+      - name: Verify Quiz Data Integrity (Pre-cleanup)
+        run: |
+          echo "🔍 Checking quiz data integrity before cleanup..."
+          curl -X POST "${{ secrets.SUPABASE_URL }}/rest/v1/rpc/verify_quiz_data_integrity" \
+            -H "apikey: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
+            -H "Prefer: return=representation" \
+            | jq '.'
+
+      - name: Call Quiz Data Cleanup Function
+        run: |
+          RESPONSE=$(curl -X POST "${{ secrets.SUPABASE_URL }}/rest/v1/rpc/cleanup_old_quiz_data" \
+            -H "apikey: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
+            -H "Content-Type: application/json" \
+            -H "Prefer: return=representation" \
+            -d "{}" \
+            -w "\n%{http_code}")
+
+          HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+          BODY=$(echo "$RESPONSE" | head -n-1)
+
+          if [ "$HTTP_CODE" -eq 200 ]; then
+            echo "✅ Quiz data cleanup successful"
+            echo "Response: $BODY"
+          else
+            echo "❌ Quiz data cleanup failed with HTTP $HTTP_CODE"
+            echo "Response: $BODY"
+            exit 1
+          fi
+
+      - name: Get Quiz Data Stats
+        if: success()
+        run: |
+          curl -X POST "${{ secrets.SUPABASE_URL }}/rest/v1/rpc/get_quiz_data_stats" \
+            -H "apikey: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
+            -H "Prefer: return=representation" \
+            | jq '.'
+
+      - name: Verify Quiz Data Integrity (Post-cleanup)
+        if: success()
+        run: |
+          echo "🔍 Verifying quiz data integrity after cleanup..."
+          curl -X POST "${{ secrets.SUPABASE_URL }}/rest/v1/rpc/verify_quiz_data_integrity" \
+            -H "apikey: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
+            -H "Prefer: return=representation" \
+            | jq '.'
+
+  # =====================================================
+  # CALENDAR EVENTS CLEANUP (Daily)
+  # =====================================================
+  # Note: This already exists in daily-calendar-cleanup.yml
+  # Keeping reference here for completeness
+  # You can merge this into your existing workflow or keep separate
+
+# =====================================================
+# CLEANUP SCHEDULE SUMMARY
+# =====================================================
+#
+# Daily at 2 AM UTC:
+#   - Calendar Events Cleanup (3-day retention for completed, 32-day for incomplete)
+#     File: .github/workflows/daily-calendar-cleanup.yml
+#
+# Daily at 3 AM UTC:
+#   - Health History Cleanup (90-day retention)
+#     This file: cleanup-health-history job
+#
+# Weekly on Sunday at 4 AM UTC:
+#   - Quiz Data Cleanup (1-year retention)
+#     This file: cleanup-quiz-data job (runs only on Sundays)
+#
+# =====================================================
+# MONITORING
+# =====================================================
+#
+# Manual monitoring queries (run in Supabase SQL Editor):
+#
+# 1. Health History Stats:
+#    SELECT * FROM get_health_history_stats();
+#
+# 2. Quiz Data Stats:
+#    SELECT * FROM get_quiz_data_stats();
+#
+# 3. All Table Sizes:
+#    SELECT
+#      schemaname,
+#      tablename,
+#      pg_size_pretty(pg_total_relation_size(schemaname||'.'||tablename)) AS size,
+#      pg_total_relation_size(schemaname||'.'||tablename) AS size_bytes
+#    FROM pg_tables
+#    WHERE schemaname = 'public'
+#    ORDER BY size_bytes DESC;
+#
+# =====================================================
