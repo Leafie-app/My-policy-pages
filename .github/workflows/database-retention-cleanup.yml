@@ -20,7 +20,7 @@ jobs:
     steps:
       - name: Call Health History Cleanup Function
         run: |
-          RESPONSE=$(curl -X POST "${{ secrets.SUPABASE_URL }}/rest/v1/rpc/cleanup_old_health_history" \
+          RESPONSE=$(curl -X POST "https://ztpuninaxtazpanepmpj.supabase.co/rest/v1/rpc/cleanup_old_health_history" \
             -H "apikey: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
             -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
             -H "Content-Type: application/json" \
@@ -43,7 +43,7 @@ jobs:
       - name: Get Health History Stats
         if: success()
         run: |
-          curl -X POST "${{ secrets.SUPABASE_URL }}/rest/v1/rpc/get_health_history_stats" \
+          curl -X POST "https://ztpuninaxtazpanepmpj.supabase.co/rest/v1/rpc/get_health_history_stats" \
             -H "apikey: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
             -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
             -H "Prefer: return=representation" \
@@ -61,7 +61,7 @@ jobs:
       - name: Verify Quiz Data Integrity (Pre-cleanup)
         run: |
           echo "🔍 Checking quiz data integrity before cleanup..."
-          curl -X POST "${{ secrets.SUPABASE_URL }}/rest/v1/rpc/verify_quiz_data_integrity" \
+          curl -X POST "https://ztpuninaxtazpanepmpj.supabase.co/rest/v1/rpc/verify_quiz_data_integrity" \
             -H "apikey: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
             -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
             -H "Prefer: return=representation" \
@@ -69,7 +69,7 @@ jobs:
 
       - name: Call Quiz Data Cleanup Function
         run: |
-          RESPONSE=$(curl -X POST "${{ secrets.SUPABASE_URL }}/rest/v1/rpc/cleanup_old_quiz_data" \
+          RESPONSE=$(curl -X POST "https://ztpuninaxtazpanepmpj.supabase.co/rest/v1/rpc/cleanup_old_quiz_data" \
             -H "apikey: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
             -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
             -H "Content-Type: application/json" \
@@ -92,7 +92,7 @@ jobs:
       - name: Get Quiz Data Stats
         if: success()
         run: |
-          curl -X POST "${{ secrets.SUPABASE_URL }}/rest/v1/rpc/get_quiz_data_stats" \
+          curl -X POST "https://ztpuninaxtazpanepmpj.supabase.co/rest/v1/rpc/get_quiz_data_stats" \
             -H "apikey: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
             -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
             -H "Prefer: return=representation" \
@@ -102,7 +102,7 @@ jobs:
         if: success()
         run: |
           echo "🔍 Verifying quiz data integrity after cleanup..."
-          curl -X POST "${{ secrets.SUPABASE_URL }}/rest/v1/rpc/verify_quiz_data_integrity" \
+          curl -X POST "https://ztpuninaxtazpanepmpj.supabase.co/rest/v1/rpc/verify_quiz_data_integrity" \
             -H "apikey: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
             -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
             -H "Prefer: return=representation" \
